@@ -1,0 +1,46 @@
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: fastendpoints-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: fastendpoints-db
+    environment:
+      SQL_CONNECTION: "Server=${APP_DB_SERVER};Database=${APP_DB_NAME};User Id=${APP_DB_USER};Password=${APP_DB_PASS};TrustServerCertificate=True;MultipleActiveResultSets=True;Min Pool Size=1;Max Pool Size=10"
+    depends_on:
+      sql:
+        condition: service_healthy
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: fastendpoints-app
+    environment:
+      ConnectionStrings__MyAppDatabase: "Server=${APP_DB_SERVER};Database=${APP_DB_NAME};User Id=${APP_DB_USER};Password=${APP_DB_PASS};TrustServerCertificate=True;MultipleActiveResultSets=True;Min Pool Size=1;Max Pool Size=10"
+    ports:
+      - "5000:80"
+    depends_on:
+      sql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  sql_data:

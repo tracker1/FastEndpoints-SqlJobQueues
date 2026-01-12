@@ -1,0 +1,41 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# IDE and editor files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+packages/
+
+# Test results
+TestResults/
+coverage/
+
+# Debug files
+*.pdb
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.*
+!.env.sample
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

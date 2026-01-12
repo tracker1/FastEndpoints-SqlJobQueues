@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
+
+# Run dbup first and check for errors
+echo "Running database setup..."
+if ! "$SCRIPT_DIR/dbup"; then
+    echo "ERROR: Database setup failed. Cannot start app."
+    exit 1
+fi
+
+echo ""
+echo "Starting app service..."
+docker compose up --build -d app
+
+echo ""
+echo "Waiting for app to be ready..."
+
+MAX_ATTEMPTS=30
+ATTEMPT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    ATTEMPT=$((ATTEMPT + 1))
+
+    # Check if container is still running
+    if ! docker ps --format '{{.Names}}' | grep -q "fastendpoints-app"; then
+        echo "ERROR: App container stopped unexpectedly."
+        echo "Container logs:"
+        docker compose logs --tail=50 app
+        exit 1
+    fi
+
+    # Try to reach the health endpoint or root
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/swagger 2>/dev/null | grep -q "302"; then
+        echo "App is ready!"
+        echo ""
+        echo "  URL: http://localhost:5000"
+        echo "  Swagger: http://localhost:5000/swagger"
+        exit 0
+    fi
+
+    echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS - waiting for app..."
+    sleep 2
+done
+
+echo "ERROR: App failed to start within timeout."
+echo "Container logs:"
+docker compose logs --tail=50 app
+exit 1

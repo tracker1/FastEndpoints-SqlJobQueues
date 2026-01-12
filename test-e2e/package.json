@@ -1,0 +1,21 @@
+{
+  "name": "test-e2e",
+  "version": "1.0.0",
+  "description": "End-to-end tests for FastEndpoints SQL Job Queues",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test": "node --import tsx --test **/*.test.ts",
+    "test:watch": "node --import tsx --test --watch **/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "mssql": "^11.0.0"
+  }
+}

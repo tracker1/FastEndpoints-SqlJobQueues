@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
+
+# Start the app and wait for it to be ready
+echo "Starting application..."
+if ! "$SCRIPT_DIR/appup"; then
+    echo "ERROR: Failed to start application."
+    exit 1
+fi
+
+echo ""
+echo "Running e2e tests..."
+cd "$PROJECT_ROOT/test-e2e"
+
+# Install dependencies if needed
+if [ ! -d "node_modules" ]; then
+    echo "Installing dependencies..."
+    npm install
+fi
+
+# Run Node.js tests
+npm test
+
+TEST_EXIT_CODE=$?
+
+echo ""
+if [ $TEST_EXIT_CODE -eq 0 ]; then
+    echo "All e2e tests passed!"
+else
+    echo "Some e2e tests failed."
+fi
+
+exit $TEST_EXIT_CODE

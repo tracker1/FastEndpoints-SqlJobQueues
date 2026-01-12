@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+SA_PASSWORD="$MSSQL_SA_PASSWORD"
+APP_USER="$APP_DB_USER"
+APP_PASSWORD="$APP_DB_PASS"
+APP_DATABASE="$APP_DB_NAME"
+
+echo "Starting SQL Server..."
+docker compose up -d sql
+
+echo "Waiting for SQL Server to be ready..."
+until docker compose exec -T sql /opt/mssql-tools18/bin/sqlcmd \
+    -S localhost -U sa -P "$SA_PASSWORD" -C -Q "SELECT 1" &>/dev/null; do
+    echo "  SQL Server is not ready yet, waiting..."
+    sleep 2
+done
+echo "SQL Server is ready."
+
+echo "Creating database and user..."
+docker compose exec -T sql /opt/mssql-tools18/bin/sqlcmd \
+    -S localhost -U sa -P "$SA_PASSWORD" -C -Q "
+-- Create login if not exists
+IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = '$APP_USER')
+BEGIN
+    CREATE LOGIN [$APP_USER] WITH PASSWORD = '$APP_PASSWORD';
+END
+
+-- Create database if not exists (with UTF8 collation)
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = '$APP_DATABASE')
+BEGIN
+    CREATE DATABASE [$APP_DATABASE] COLLATE Latin1_General_100_CI_AI_SC_UTF8;
+END
+"
+
+echo "Setting up database user and permissions..."
+docker compose exec -T sql /opt/mssql-tools18/bin/sqlcmd \
+    -S localhost -U sa -P "$SA_PASSWORD" -C -d "$APP_DATABASE" -Q "
+-- Create user in database if not exists
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '$APP_USER')
+BEGIN
+    CREATE USER [$APP_USER] FOR LOGIN [$APP_USER];
+END
+
+-- Add user to db_owner role
+ALTER ROLE db_owner ADD MEMBER [$APP_USER];
+"
+
+echo "Database setup complete."
+
+echo ""
+echo "Running grate migrations..."
+docker compose up --build -d db
+
+# Wait for db container to finish
+echo "Waiting for grate migrations to complete..."
+docker wait fastendpoints-db
+
+# Get the exit code from the db container
+DB_EXIT_CODE=$(docker inspect fastendpoints-db --format='{{.State.ExitCode}}')
+
+if [ "$DB_EXIT_CODE" -ne 0 ]; then
+    echo "ERROR: grate migrations failed with exit code $DB_EXIT_CODE"
+    exit "$DB_EXIT_CODE"
+fi
+
+echo "Grate migrations completed successfully."
+echo ""
+echo "Connection details:"
+echo "  Host:     localhost"
+echo "  Port:     1433"
+echo "  Database: $APP_DATABASE"
+echo "  User:     $APP_USER"
+echo "  Password: $APP_PASSWORD"

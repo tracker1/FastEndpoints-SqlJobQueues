@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
+
+echo "Stopping docker-compose services and removing volumes..."
+docker compose down -v -t 1
+
+echo "Done."
