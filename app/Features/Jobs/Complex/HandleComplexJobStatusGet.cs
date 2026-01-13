@@ -34,7 +34,7 @@ public sealed class ComplexJobStatusResponse
     public string Status { get; set; } = "Pending";
 
     /// <summary>
-    /// The job result (available when complete)
+    /// The job result (contains progress details while in-progress, final result when complete)
     /// </summary>
     public ComplexJobResult? Result { get; set; }
 }
@@ -97,7 +97,7 @@ public sealed class HandleComplexJobStatusGet(
             CurrentStep = jobResult.CurrentStep,
             TotalSteps = jobResult.TotalSteps,
             Status = jobResult.CurrentStatus ?? "Processing",
-            Result = jobResult.IsComplete ? jobResult.Result : null
+            Result = jobResult.Result
         }, cancellation: ct);
     }
 }

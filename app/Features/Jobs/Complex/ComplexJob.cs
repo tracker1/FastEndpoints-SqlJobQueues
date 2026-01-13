@@ -29,7 +29,7 @@ public sealed class ComplexJob : ITrackableJob<JobResult<ComplexJobResult>>
 public sealed class ComplexJobResult
 {
     /// <summary>
-    /// Dictionary mapping each todo item to when it was processed (null if not yet processed)
+    /// Dictionary mapping each todo item to when it was processed (null if not yet started)
     /// </summary>
     public Dictionary<string, DateTime?> TodoResult { get; set; } = [];
 }
