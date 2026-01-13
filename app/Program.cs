@@ -26,7 +26,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // Add Dependencies - connection string for creating new connections
 var connectionString = builder.Configuration.GetConnectionString("MyAppDatabase");
 builder.Services.AddSingleton<Func<SqlConnection>>(() =>
-    new SqlConnection(connectionString));
+  new SqlConnection(connectionString));
 
 builder.Services
   .AddFastEndpoints()

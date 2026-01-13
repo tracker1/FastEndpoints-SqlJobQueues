@@ -4,7 +4,7 @@ using System.Data;
 namespace Application.Estensions.Dapper;
 
 public class DapperableEnumHandler<TEnum> : SqlMapper.ITypeHandler
-    where TEnum : struct, Enum
+  where TEnum : struct, Enum
 {
   public object Parse(Type destinationType, object value)
   {

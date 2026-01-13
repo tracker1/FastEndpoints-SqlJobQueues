@@ -28,7 +28,7 @@ public class DapperableEnumConverter : JsonConverterFactory
 
     // Create an instance of the generic CustomEnumConverter<T>
     var converter = (JsonConverter)Activator.CreateInstance(
-        typeof(DapperableEnumConvertorInner<>).MakeGenericType(genericType))!;
+      typeof(DapperableEnumConvertorInner<>).MakeGenericType(genericType))!;
 
     return converter;
   }

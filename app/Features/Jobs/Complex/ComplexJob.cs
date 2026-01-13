@@ -7,20 +7,20 @@ namespace Jobs.Complex;
 /// </summary>
 public sealed class ComplexJob : ITrackableJob<JobResult<ComplexJobResult>>
 {
-    /// <summary>
-    /// Tracking ID for the job (set by FastEndpoints)
-    /// </summary>
-    public Guid TrackingID { get; set; }
+  /// <summary>
+  /// Tracking ID for the job (set by FastEndpoints)
+  /// </summary>
+  public Guid TrackingID { get; set; }
 
-    /// <summary>
-    /// List of todo items to process
-    /// </summary>
-    public List<string> TodoItems { get; set; } = [];
+  /// <summary>
+  /// List of todo items to process
+  /// </summary>
+  public List<string> TodoItems { get; set; } = [];
 
-    /// <summary>
-    /// If true, skip the delays during processing (useful for testing)
-    /// </summary>
-    public bool? SkipWait { get; set; }
+  /// <summary>
+  /// If true, skip the delays during processing (useful for testing)
+  /// </summary>
+  public bool? SkipWait { get; set; }
 }
 
 /// <summary>
@@ -28,8 +28,8 @@ public sealed class ComplexJob : ITrackableJob<JobResult<ComplexJobResult>>
 /// </summary>
 public sealed class ComplexJobResult
 {
-    /// <summary>
-    /// Dictionary mapping each todo item to when it was processed (null if not yet started)
-    /// </summary>
-    public Dictionary<string, DateTime?> TodoResult { get; set; } = [];
+  /// <summary>
+  /// Dictionary mapping each todo item to when it was processed (null if not yet started)
+  /// </summary>
+  public Dictionary<string, DateTime?> TodoResult { get; set; } = [];
 }

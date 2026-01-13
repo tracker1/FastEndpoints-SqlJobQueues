@@ -7,9 +7,9 @@ namespace Application.Jobs;
 /*
 var trackingId = await command.QueueJobAsync(jobRecord =>
 {
-    jobRecord.CreatedOn = DateTime.UtcNow;
-    jobRecord.CreatedByUserId = "user";
-    jobRecord.CreatedByDisplayName = "User Name";
+  jobRecord.CreatedOn = DateTime.UtcNow;
+  jobRecord.CreatedByUserId = "user";
+  jobRecord.CreatedByDisplayName = "User Name";
 });
 */
 

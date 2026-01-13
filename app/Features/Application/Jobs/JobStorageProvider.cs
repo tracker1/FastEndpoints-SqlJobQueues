@@ -14,64 +14,64 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
 {
   #region SQL Queries
   public static readonly string UpsertJobQueue = @"
-    BEGIN TRANSACTION;
-      UPDATE [MyApp].[JobQueue] SET
-        [WorkCommandJson] = @WorkCommandJson, 
-        [WorkResultJson] = @WorkResultJson, 
-        [WorkLogJsonLines] = @WorkLogJsonLines, 
-        [Tries] = @Tries,
-        [ExecuteAfter] = @ExecuteAfter, 
-        [ExpireOn] = @ExpireOn, 
-        [IsComplete] = @IsComplete, 
-        [IsCancelled] = @IsCancelled, 
-        [StartedOn] = @StartedOn, 
-        [FinishedOn] = @FinishedOn
-      WHERE [TrackingID] = @TrackingID;
+  BEGIN TRANSACTION;
+    UPDATE [MyApp].[JobQueue] SET
+    [WorkCommandJson] = @WorkCommandJson, 
+    [WorkResultJson] = @WorkResultJson, 
+    [WorkLogJsonLines] = @WorkLogJsonLines, 
+    [Tries] = @Tries,
+    [ExecuteAfter] = @ExecuteAfter, 
+    [ExpireOn] = @ExpireOn, 
+    [IsComplete] = @IsComplete, 
+    [IsCancelled] = @IsCancelled, 
+    [StartedOn] = @StartedOn, 
+    [FinishedOn] = @FinishedOn
+    WHERE [TrackingID] = @TrackingID;
 
-      IF (@@ROWCOUNT = 0)
-      BEGIN
-        INSERT INTO [MyApp].[JobQueue]
-        (
-          [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
-        )
-        VALUES
-        (
-          @QueueID, @TrackingID, @WorkCommandJson, @WorkResultJson, @WorkLogJsonLines, @Tries, @ExecuteAfter, @ExpireOn, @IsComplete, @IsCancelled, @StartedOn, @FinishedOn, @CreatedOn, @CreatedByUserId, @CreatedByDisplayName
-        ) 
-      END;
-    COMMIT TRANSACTION;
+    IF (@@ROWCOUNT = 0)
+    BEGIN
+    INSERT INTO [MyApp].[JobQueue]
+    (
+      [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
+    )
+    VALUES
+    (
+      @QueueID, @TrackingID, @WorkCommandJson, @WorkResultJson, @WorkLogJsonLines, @Tries, @ExecuteAfter, @ExpireOn, @IsComplete, @IsCancelled, @StartedOn, @FinishedOn, @CreatedOn, @CreatedByUserId, @CreatedByDisplayName
+    ) 
+    END;
+  COMMIT TRANSACTION;
   ";
 
   public static readonly string UpsertJobQueueHistory = @"
-    BEGIN TRANSACTION;
-      DELETE FROM [MyApp].[JobQueue]
-      WHERE [TrackingID] = @TrackingID;
+  BEGIN TRANSACTION;
+    DELETE FROM [MyApp].[JobQueue]
+    WHERE [TrackingID] = @TrackingID;
 
-      UPDATE [MyApp].[JobHistory] SET
-        [WorkCommandJson] = @WorkCommandJson, 
-        [WorkResultJson] = @WorkResultJson, 
-        [WorkLogJsonLines] = @WorkLogJsonLines, 
-        [Tries] = @Tries,
-        [ExecuteAfter] = @ExecuteAfter, 
-        [ExpireOn] = @ExpireOn, 
-        [IsComplete] = @IsComplete, 
-        [IsCancelled] = @IsCancelled, 
-        [StartedOn] = @StartedOn, 
-        [FinishedOn] = @FinishedOn
-      WHERE [TrackingID] = @TrackingID;
+    UPDATE [MyApp].[JobHistory] SET
+    [WorkCommandJson] = @WorkCommandJson, 
+    [WorkResultJson] = @WorkResultJson, 
+    [WorkLogJsonLines] = @WorkLogJsonLines, 
+    [Tries] = @Tries,
+    [ExecuteAfter] = @ExecuteAfter, 
+    [ExpireOn] = @ExpireOn, 
+    [IsComplete] = @IsComplete, 
+    [IsCancelled] = @IsCancelled, 
+    [StartedOn] = @StartedOn, 
+    [FinishedOn] = @FinishedOn
+    WHERE [TrackingID] = @TrackingID;
 
-      IF (@@ROWCOUNT = 0)
-      BEGIN
-        INSERT INTO [MyApp].[JobHistory]
-        (
-          [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
-        )
-        VALUES
-        (
-          @QueueID, @TrackingID, @WorkCommandJson, @WorkResultJson, @WorkLogJsonLines, @Tries, @ExecuteAfter, @ExpireOn, @IsComplete, @IsCancelled, @StartedOn, @FinishedOn, @CreatedOn, @CreatedByUserId, @CreatedByDisplayName
-        ) 
-      END
-    COMMIT TRANSACTION;
+    IF (@@ROWCOUNT = 0)
+    BEGIN
+    INSERT INTO [MyApp].[JobHistory]
+    (
+      [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
+    )
+    VALUES
+    (
+      @QueueID, @TrackingID, @WorkCommandJson, @WorkResultJson, @WorkLogJsonLines, @Tries, @ExecuteAfter, @ExpireOn, @IsComplete, @IsCancelled, @StartedOn, @FinishedOn, @CreatedOn, @CreatedByUserId, @CreatedByDisplayName
+    ) 
+    END
+  COMMIT TRANSACTION;
   ";
   #endregion
 
@@ -84,14 +84,14 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
     await db.OpenAsync(ct);
     return await db.QuerySingleOrDefaultAsync<JobRecord>(
       @"
-        SELECT *
-          FROM [MyApp].[JobQueue]
-          WHERE [TrackingID] = @trackingId
-        UNION ALL
-        SELECT *
-          FROM [MyApp].[JobHistory]
-          WHERE [TrackingID] = @trackingId
-      ",
+    SELECT *
+      FROM [MyApp].[JobQueue]
+      WHERE [TrackingID] = @trackingId
+    UNION ALL
+    SELECT *
+      FROM [MyApp].[JobHistory]
+      WHERE [TrackingID] = @trackingId
+    ",
       new { trackingId }
     );
   }
@@ -108,8 +108,8 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
       await using var db = dbFactory();
       await db.OpenAsync(ct);
       await db.ExecuteAsync(
-        job.IsComplete || job.IsCancelled ? UpsertJobQueueHistory : UpsertJobQueue,
-        job
+      job.IsComplete || job.IsCancelled ? UpsertJobQueueHistory : UpsertJobQueue,
+      job
       );
     }
     catch (Exception ex)
@@ -125,13 +125,13 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
     await db.OpenAsync();
     var records = (await db.QueryAsync<JobRecord>(
       $@"
-        SELECT TOP {p.Limit}
-          *
-        FROM [MyApp].[JobQueue]
-        WHERE [StartedOn] IS NULL
-        AND [ExecuteAfter] <= @now
-        ORDER BY [CreatedOn] ASC
-      ",
+    SELECT TOP {p.Limit}
+      *
+    FROM [MyApp].[JobQueue]
+    WHERE [StartedOn] IS NULL
+    AND [ExecuteAfter] <= @now
+    ORDER BY [CreatedOn] ASC
+    ",
       new
       {
         now = DateTime.UtcNow
@@ -162,10 +162,10 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
     await db.OpenAsync(ct);
     var job = await db.QuerySingleOrDefaultAsync<JobRecord>(
       @"
-        SELECT *
-        FROM [MyApp].[JobQueue]
-        WHERE [TrackingID] = @trackingId
-      ",
+    SELECT *
+    FROM [MyApp].[JobQueue]
+    WHERE [TrackingID] = @trackingId
+    ",
       new { trackingId }
     );
 
@@ -210,31 +210,31 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
     await db.OpenAsync();
     await db.ExecuteAsync(
       $@"
-        BEGIN TRANSACTION;
-          -- update in place
-          UPDATE [MyApp].[JobQueue]
-          SET [IsCancelled] = 1,
-              [FinishedOn] = @now,
-              [WorkLogJsonLines] = CONCAT([WorkLogJsonLines],@msg)
-          WHERE [IsComplete] = 0
-          AND [StartedOn] IS NULL
-          AND [ExpireOn] <= @now;
+    BEGIN TRANSACTION;
+      -- update in place
+      UPDATE [MyApp].[JobQueue]
+      SET [IsCancelled] = 1,
+        [FinishedOn] = @now,
+        [WorkLogJsonLines] = CONCAT([WorkLogJsonLines],@msg)
+      WHERE [IsComplete] = 0
+      AND [StartedOn] IS NULL
+      AND [ExpireOn] <= @now;
 
-          -- move to history
-          INSERT INTO [MyApp].[JobHistory]
-          (
-            [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
-          )
-          SELECT
-            [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
-          FROM [MyApp].[JobQueue]
-          WHERE [FinishedON] IS NOT NULL;
+      -- move to history
+      INSERT INTO [MyApp].[JobHistory]
+      (
+      [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
+      )
+      SELECT
+      [QueueID], [TrackingID], [WorkCommandJson], [WorkResultJson], [WorkLogJsonLines], [Tries], [ExecuteAfter], [ExpireOn], [IsComplete], [IsCancelled], [StartedOn], [FinishedOn], [CreatedOn], [CreatedByUserId], [CreatedByDisplayName]
+      FROM [MyApp].[JobQueue]
+      WHERE [FinishedON] IS NOT NULL;
 
-          -- delete from queue
-          DELETE FROM [MyApp].[JobQueue]
-          WHERE [FinishedON] IS NOT NULL;
-        COMMIT TRANSACTION;
-      ",
+      -- delete from queue
+      DELETE FROM [MyApp].[JobQueue]
+      WHERE [FinishedON] IS NOT NULL;
+    COMMIT TRANSACTION;
+    ",
       new { msg, now }
     );
   }
