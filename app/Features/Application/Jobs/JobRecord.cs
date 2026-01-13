@@ -129,7 +129,7 @@ public sealed class JobRecord : IJobStorageRecord, IJobResultStorage
   /// </summary>
   public TResult? GetResult<TResult>()
   {
-    return JsonHelper.FromJson<TResult>(WorkResultJson);
+    return string.IsNullOrWhiteSpace(WorkResultJson) ? default : JsonHelper.FromJson<TResult>(WorkResultJson);
   }
 
   /// <summary>

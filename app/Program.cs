@@ -31,8 +31,10 @@ builder.Services.AddSingleton<Func<SqlConnection>>(() =>
 builder.Services
   .AddFastEndpoints()
   .AddJobQueues<JobRecord, JobStorageProvider>()
+  .AddScoped<IJobStorageProvider<JobRecord>, JobStorageProvider>()
   .AddScoped<IJobResultProvider, JobStorageProvider>()
-  .AddScoped<JobStorageProvider>();
+  .AddScoped<JobStorageProvider>()
+  .AddScoped(typeof(IJobTracker<>), typeof(PersistentJobTracker<>));
 
 builder.Services.SwaggerDocument(o =>
 {

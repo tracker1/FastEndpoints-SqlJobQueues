@@ -6,7 +6,7 @@ BEGIN
     [QueueID] VARCHAR(255) NOT NULL, -- aka Command name
     [TrackingID] UNIQUEIDENTIFIER PRIMARY KEY, -- pk tracking number
     [WorkCommandJson] VARCHAR(MAX) NOT NULL DEFAULT ('{}'), -- serialized work request details
-    [WorkResultJson] VARCHAR(MAX)  NOT NULL DEFAULT ('{}'), -- work result details
+    [WorkResultJson] VARCHAR(MAX) NULL, -- work result details
     [WorkLogJsonLines] VARCHAR(MAX) NOT NULL DEFAULT '', -- line separated json log
     [Tries] INT NOT NULL DEFAULT (0), -- number of tries made.
     [ExecuteAfter] DATETIME NOT NULL, -- when to start the task

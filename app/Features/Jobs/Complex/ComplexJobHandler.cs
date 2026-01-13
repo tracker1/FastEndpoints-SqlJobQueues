@@ -1,4 +1,7 @@
+using Application.Extensions;
+using Application.Jobs;
 using FastEndpoints;
+using YamlDotNet.Core.Tokens;
 
 namespace Jobs.Complex;
 
@@ -25,8 +28,8 @@ public sealed class ComplexJobHandler(
         var jobResult = new JobResult<ComplexJobResult>(totalSteps: itemCount + 1)
         {
             CurrentStatus = "Starting",
-            CurrentStep = 0,
-            Result = new ComplexJobResult { TodoResult = processedItems }
+            CurrentStep = 1
+            // Note: do not set Result, or the task will be marked complete.
         };
 
         // Save initial status with current result state
@@ -59,7 +62,6 @@ public sealed class ComplexJobHandler(
             processedItems[item] = DateTime.UtcNow;
             jobResult.CurrentStep = i + 1;
             jobResult.CurrentStatus = $"Processed: {item}";
-            jobResult.Result = new ComplexJobResult { TodoResult = processedItems };
 
             await tracker.StoreJobResultAsync(job.TrackingID, jobResult, ct);
             logger.LogInformation("Job {TrackingId}: Processed item '{Item}' ({Step}/{Total})",
@@ -67,6 +69,8 @@ public sealed class ComplexJobHandler(
         }
 
         // Set final status
+        jobResult.Result = new ComplexJobResult { TodoResult = processedItems };
+        jobResult.CurrentStep = jobResult.TotalSteps;
         jobResult.CurrentStatus = "Complete";
 
         logger.LogInformation("Job {TrackingId}: Completed processing all items", job.TrackingID);

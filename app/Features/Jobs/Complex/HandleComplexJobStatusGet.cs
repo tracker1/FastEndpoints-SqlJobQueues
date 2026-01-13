@@ -69,8 +69,8 @@ public sealed class HandleComplexJobStatusGet(
             return;
         }
 
-        var jobResult = await JobTracker<ComplexJob>
-            .GetJobResultAsync<JobResult<ComplexJobResult>>(trackingId, ct);
+        // use jobRecord directly, not JobTracker
+        var jobResult = jobRecord.GetResult<JobResult<ComplexJobResult>>();
 
         if (jobResult is null)
         {

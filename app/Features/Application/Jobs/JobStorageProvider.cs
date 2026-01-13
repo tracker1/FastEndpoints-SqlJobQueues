@@ -12,6 +12,7 @@ namespace Application.Jobs;
 
 public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<JobStorageProvider> logger) : IJobStorageProvider<JobRecord>, IJobResultProvider
 {
+  #region SQL Queries
   public static readonly string UpsertJobQueue = @"
     BEGIN TRANSACTION;
       UPDATE [MyApp].[JobQueue] SET
@@ -72,7 +73,7 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
       END
     COMMIT TRANSACTION;
   ";
-
+  #endregion
 
   private Func<SqlConnection> dbFactory = dbFactory;
   private ILogger<JobStorageProvider> logger = logger;
@@ -194,6 +195,7 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
     job.Tries += 1;
     await this.StoreJobAsync(job, ct);
   }
+
   public async Task PurgeStaleJobsAsync(StaleJobSearchParams<JobRecord> p)
   {
     var now = DateTime.UtcNow;
