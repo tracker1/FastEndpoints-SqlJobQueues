@@ -123,27 +123,30 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
   {
     await using var db = dbFactory();
     await db.OpenAsync();
-    var records = (await db.QueryAsync<JobRecord>(
+    var records = await db.QueryAsync<JobRecord>(
       $@"
-    SELECT TOP {p.Limit}
-      *
-    FROM [MyApp].[JobQueue]
-    WHERE [StartedOn] IS NULL
-    AND [ExecuteAfter] <= @now
-    ORDER BY [CreatedOn] ASC
-    ",
-      new
-      {
-        now = DateTime.UtcNow
-      }
-    )).ToList();
+      BEGIN TRANSACTION;
+        DECLARE @ids TABLE ([TrackingID] UNIQUEIDENTIFIER);
+        DECLARE @now DATETIME = SYSUTCDATETIME();
 
-    foreach (var record in records)
-    {
-      record.StartedOn = DateTime.UtcNow;
-      await this.StoreJobAsync(record, CancellationToken.None);
-    }
+        INSERT INTO @ids ([TrackingID])
+        SELECT TOP {p.Limit} [TrackingID]
+        FROM [MyApp].[JobQueue]
+        WHERE [StartedOn] IS NULL
+          AND [ExecuteAfter] <= @now
+        ORDER BY [CreatedOn] ASC;
 
+        UPDATE jq
+        SET [StartedOn] = @now
+        FROM [MyApp].[JobQueue] jq
+        INNER JOIN @ids i ON jq.[TrackingID] = i.[TrackingID];
+
+        SELECT jq.*
+        FROM [MyApp].[JobQueue] jq
+        INNER JOIN @ids i ON jq.[TrackingID] = i.[TrackingID];
+      COMMIT TRANSACTION;
+      "
+    );
     return records;
   }
 
@@ -158,17 +161,7 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
 
   public async Task CancelJobAsync(Guid trackingId, CancellationToken ct)
   {
-    await using var db = dbFactory();
-    await db.OpenAsync(ct);
-    var job = await db.QuerySingleOrDefaultAsync<JobRecord>(
-      @"
-    SELECT *
-    FROM [MyApp].[JobQueue]
-    WHERE [TrackingID] = @trackingId
-    ",
-      new { trackingId }
-    );
-
+    var job = await GetJobRecordAsync(trackingId, ct);
     if (job is null) return;
 
     job.IsCancelled = true;
@@ -187,12 +180,29 @@ public sealed class JobStorageProvider(Func<SqlConnection> dbFactory, ILogger<Jo
       msg = $"Job execution failed with exception: {exception.Message}",
     }) + "\n";
 
-    job.ExecuteAfter = DateTime.UtcNow.AddMinutes(1);
-    job.StartedOn = null;
-    job.FinishedOn = null;
-    job.IsCancelled = false;
-    job.IsComplete = false;
     job.Tries += 1;
+
+    if (job.Tries >= 5)
+    {
+      job.WorkLogJsonLines += JsonHelper.ToJson(new
+      {
+        dtm = DateTime.UtcNow,
+        lvl = "Error",
+        msg = "Job cancelled after exceeding maximum retry attempts (5).",
+      }) + "\n";
+
+      job.IsCancelled = true;
+      job.FinishedOn = DateTime.UtcNow;
+    }
+    else
+    {
+      job.ExecuteAfter = DateTime.UtcNow.AddMinutes(1);
+      job.StartedOn = null;
+      job.FinishedOn = null;
+      job.IsCancelled = false;
+      job.IsComplete = false;
+    }
+
     await this.StoreJobAsync(job, ct);
   }
 

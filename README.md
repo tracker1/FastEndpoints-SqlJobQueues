@@ -16,7 +16,7 @@ This project demonstrates a production-ready job queue system built with:
 
 ```
 workspace/
-├── _scripts/       # Shell automation scripts
+├── run/       # Shell automation scripts
 ├── app/            # FastEndpoints web application
 ├── db/             # Database migrations (grate)
 ├── test-e2e/       # Node.js-based API and database tests
@@ -39,7 +39,7 @@ workspace/
 
 2. **Start SQL Server and run migrations:**
    ```bash
-   ./_scripts/dbup
+   run/dbup
    ```
 
 3. **Run the application:**
@@ -51,7 +51,7 @@ workspace/
    or, in docker
 
    ```bash
-   ./_scripts/appup
+   run/appup
    ```
 
 4. **Access Swagger UI:**
@@ -61,12 +61,12 @@ workspace/
 
 | Script              | Description |
 |---------------------|-------------|
-| `_scripts/clean`    | Stop Docker services and remove volumes |
-| `_scripts/down`     | Stop Docker services  |
-| `_scripts/dbup`     | Start SQL Server, create database/user, run migrations |
-| `_scripts/appup`    | Start App Server (runs dbup)
-| `_scripts/appdown`  | Stop App Server
-| `_scripts/test-e2e` | Runs end to end tests (runs appup)
+| `run/clean`    | Stop Docker services and remove volumes |
+| `run/down`     | Stop Docker services  |
+| `run/dbup`     | Start SQL Server, create database/user, run migrations |
+| `run/appup`    | Start App Server (runs dbup)
+| `run/appdown`  | Stop App Server
+| `run/test-e2e` | Runs end to end tests (runs appup)
 
 ## Database
 
