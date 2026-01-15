@@ -72,6 +72,10 @@ workspace/
 
 See [db/README.md](db/README.md) for database schema and migration details.
 
+## Tests
+
+Tests were co-written with Claude Code.
+
 ## License
 
 MIT License - Copyright 2026 Michael J. Ryan
